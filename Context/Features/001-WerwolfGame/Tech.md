@@ -7,13 +7,13 @@
 ## System Overview
 
 ### High-Level Architecture
-WerwolfGame implements a pure SwiftUI architecture with @Observable state management for shared-device social gaming. Central GameModel manages all game state with environment injection providing access across the view hierarchy. Privacy-sensitive information is handled through role-based computed properties and privacySensitive() view modifiers for secure device passing.
+WerwolfGame implements a pure SwiftUI architecture with @Observable state management for shared-device social gaming. Central GameModel manages all game state with environment injection providing access across the view hierarchy. Privacy-sensitive information is handled through role-based computed properties and clear visual boundaries for secure device passing.
 
 ### Core Components
 - **GameModel**: @Observable central state manager containing players, roles, current phase, and game logic with private information protection
-- **Game Views**: SwiftUI view hierarchy for setup, gameplay phases, voting, and results with accessibility-first design
+- **Game Views**: SwiftUI view hierarchy for setup, gameplay phases, voting, and results with clear visual design
 - **Role System**: Enumeration-based role definitions with capabilities, win conditions, and night action logic
-- **Device Passing Interface**: Custom UI patterns with VoiceOver focus management and privacy protection during player transitions
+- **Device Passing Interface**: Custom UI patterns with clear visual cues and privacy protection during player transitions
 
 ### Data Flow
 Unidirectional data flow with GameModel as single source of truth. User actions flow up through view callbacks to GameModel methods, state changes automatically trigger SwiftUI view updates. Private information (roles, votes) accessed through computed properties that filter data based on current player context. No persistence required - all game data exists in memory during active session only.
@@ -32,7 +32,7 @@ GameStateView (main game coordinator)
 ├── Game/
 │   ├── NightPhaseView (werewolf, seer, doctor night actions)
 │   ├── DayPhaseView (discussion phase with player status)
-│   ├── RoleRevealView (private role display with privacySensitive)
+│   ├── RoleRevealView (private role display with visual privacy)
 │   └── VotingView (secret ballot interface with vote tallying)
 ├── Results/
 │   ├── EliminationView (dramatic player elimination reveal)
@@ -49,9 +49,9 @@ GameStateView (main game coordinator)
 - **Navigation**: NavigationStack with programmatic navigation based on game phase transitions
 
 **Architectural Decision Rationale**:
-- **Why this structure**: Follows SwiftUI Guidelines for component organization, separates concerns by game phase, maintains accessibility focus
+- **Why this structure**: Follows SwiftUI Guidelines for component organization, separates concerns by game phase, maintains clear visual hierarchy
 - **Alternatives considered**: Multiple view models per phase (rejected - adds complexity), GameplayKit state machine (evaluated - may be overkill for turn-based flow)
-- **Trade-offs**: Simple structure aids accessibility but requires careful state design for complex game logic
+- **Trade-offs**: Simple structure aids usability but requires careful state design for complex game logic
 
 ### Data Layer Design
 
@@ -104,7 +104,7 @@ enum Role: String, CaseIterable {
 **Service Organization**:
 - **GameLogicService**: Embedded within GameModel - handles role assignment, win condition detection, vote tallying
 - **GameRulesEngine**: Static utility for game balance validation, role combinations, and rule enforcement
-- **AccessibilityService**: SwiftUI native accessibility with custom focus management for device handoff
+- **UIService**: SwiftUI native interface with clear visual feedback for device handoff
 
 **External Integration Strategy**:
 - **APIs**: None required - fully offline game design
@@ -114,7 +114,7 @@ enum Role: String, CaseIterable {
 **Dependency Management**:
 - **Package Dependencies**: None - pure SwiftUI/Foundation implementation
 - **Version Requirements**: iOS 17+ for @Observable support (aligns with project iOS 26.0+ target)
-- **Integration Points**: Native SwiftUI accessibility APIs, no external service integration
+- **Integration Points**: Native SwiftUI interface APIs, no external service integration
 
 ### Platform-Specific Considerations
 
@@ -145,18 +145,18 @@ enum Role: String, CaseIterable {
 - **Setup and Infrastructure**: Low complexity - clean slate SwiftUI project with standard architecture
 - **Core Implementation**: Medium complexity - game logic straightforward, device sharing patterns require custom design
 - **Integration Points**: Low complexity - no external services, pure SwiftUI implementation
-- **Testing Requirements**: Medium complexity - comprehensive game logic testing, extensive accessibility validation
+- **Testing Requirements**: Medium complexity - comprehensive game logic testing, extensive usability validation
 
 **Risk Assessment**:
-- **High Risk Areas**: Shared device accessibility patterns (custom implementation needed), privacy information leakage through VoiceOver
-- **Mitigation Strategies**: Early accessibility testing with real users, privacySensitive() modifier validation, comprehensive state testing
+- **High Risk Areas**: Shared device UI patterns (custom implementation needed), privacy information visibility during device handoff
+- **Mitigation Strategies**: Early usability testing with real user groups, clear visual privacy boundaries, comprehensive state testing
 - **Unknowns Requiring Research**: None identified - research phase addressed all technical uncertainties
 
 ### Dependency Analysis
 
 **External Dependencies**:
 - **Swift Packages**: None required - pure SwiftUI implementation
-- **iOS Frameworks**: SwiftUI, Foundation (built-in), Accessibility framework (automatic)
+- **iOS Frameworks**: SwiftUI, Foundation (built-in)
 - **Third-Party Services**: None - fully offline architecture
 
 **Internal Dependencies**:
@@ -169,12 +169,12 @@ enum Role: String, CaseIterable {
 **Testing Strategy**:
 - **Unit Tests**: Swift Testing framework for game logic (role assignment, win conditions, vote tallying, game balance validation)
 - **Integration Tests**: GameModel state transition testing, privacy information filtering validation
-- **UI Tests**: None - per SwiftUI Guidelines, focus on manual accessibility testing instead
+- **UI Tests**: None - per SwiftUI Guidelines, focus on manual usability testing instead
 
 **Validation Requirements**:
-- **Context/Guidelines Validation**: Accessibility-first design validation, privacy-by-design verification, SwiftUI best practices compliance
+- **Context/Guidelines Validation**: Clear visual design validation, privacy-by-design verification, SwiftUI best practices compliance
 - **Performance Testing**: Memory usage validation with maximum player counts, UI responsiveness during animations
-- **Platform Testing**: iPhone/iPad screen size optimization, VoiceOver navigation across device sizes, Dynamic Type scaling validation
+- **Platform Testing**: iPhone/iPad screen size optimization, Dynamic Type scaling validation across age groups
 
 ## Technical Clarifications
 
@@ -182,10 +182,10 @@ enum Role: String, CaseIterable {
 No significant technical uncertainties remain after comprehensive research phase. All core technologies and architectural patterns have been validated.
 
 ### Research Requirements
-**Technology Investigations**: Complete - SwiftUI patterns, @Observable state management, and accessibility approaches fully researched
+**Technology Investigations**: Complete - SwiftUI patterns, @Observable state management, and usability approaches fully researched
 
 **Proof of Concept Needs**: 
-- **Device Handoff UX Testing**: Early prototype of device passing flow with VoiceOver to validate user experience
+- **Device Handoff UX Testing**: Early prototype of device passing flow with clear visual cues to validate user experience
 - **Complex Game State Testing**: Validate @Observable performance with maximum player counts and rapid state changes
 
 ---
