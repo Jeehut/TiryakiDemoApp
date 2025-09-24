@@ -13,7 +13,8 @@ WerwolfGame implements a pure SwiftUI architecture with @Observable state manage
 - **GameModel**: @Observable central state manager containing players, roles, current phase, and game logic with private information protection
 - **Game Views**: SwiftUI view hierarchy for setup, gameplay phases, voting, and results with clear visual design
 - **Role System**: Enumeration-based role definitions with capabilities, win conditions, and night action logic
-- **Device Passing Interface**: Custom UI patterns with clear visual cues and privacy protection during player transitions
+- **Device Passing Coordinator**: Manages turn-based device handoff with explicit instructions for who takes device when, what they do, and when to pass it on
+- **Instruction System**: Clear, prominent guidance for current player actions and device passing protocol
 
 ### Data Flow
 Unidirectional data flow with GameModel as single source of truth. User actions flow up through view callbacks to GameModel methods, state changes automatically trigger SwiftUI view updates. Private information (roles, votes) accessed through computed properties that filter data based on current player context. No persistence required - all game data exists in memory during active session only.
@@ -24,23 +25,26 @@ Unidirectional data flow with GameModel as single source of truth. User actions 
 
 **View Hierarchy**:
 ```
-GameStateView (main game coordinator)
+GameStateView (main game coordinator with device passing orchestration)
 ├── Setup/
-│   ├── PlayerSetupView (player name entry and validation)
-│   ├── RoleCustomizationView (optional role selection interface)
-│   └── GameStartView (final setup confirmation and game launch)
-├── Game/
-│   ├── NightPhaseView (werewolf, seer, doctor night actions)
-│   ├── DayPhaseView (discussion phase with player status)
-│   ├── RoleRevealView (private role display with visual privacy)
-│   └── VotingView (secret ballot interface with vote tallying)
-├── Results/
-│   ├── EliminationView (dramatic player elimination reveal)
-│   └── GameResultsView (win/loss screen with celebration)
+│   ├── PlayerSetupView (group setup - device stays in center)
+│   ├── RoleCustomizationView (group role selection - device in center)
+│   └── GameStartView (final confirmation before private role reveals)
+├── DeviceFlow/
+│   ├── PassDevicePrompt (WHO should take device, WHAT to do instructions)
+│   ├── RoleRevealView (PRIVATE: show role, explain abilities, pass instructions)
+│   ├── NightActionView (PRIVATE: show available actions for current role)
+│   ├── VotingView (PRIVATE: cast vote, confirm, pass device)
+│   └── DeviceReturnPrompt (instructions to return device to center/next player)
+├── GroupViews/
+│   ├── DayPhaseView (GROUP: discussion phase, device in center)
+│   ├── EliminationView (GROUP: dramatic reveal, device in center)
+│   └── GameResultsView (GROUP: win/loss celebration, device in center)
 └── Components/
-    ├── PlayerListView (reusable player display component)
-    ├── GameProgressView (phase indicator and game status)
-    └── DeviceHandoffView (secure device passing interface)
+    ├── InstructionBanner (prominent current player instructions)
+    ├── DevicePassingCue (visual/textual handoff guidance)
+    ├── PrivacyGuard (look away reminders for other players)
+    └── GameProgressView (phase indicator and game status)
 ```
 
 **State Management**:
@@ -67,6 +71,12 @@ class GameModel {
     var currentRound: Int = 1
     var gameSettings: GameSettings = GameSettings()
     
+    // Device passing coordination
+    var currentPlayerTurn: PlayerID? = nil
+    var deviceLocation: DeviceLocation = .center
+    var currentInstruction: PlayerInstruction = .groupSetup
+    var awaitingAction: PlayerAction? = nil
+    
     @ObservationIgnored
     private var playerRoles: [PlayerID: Role] = [:]
     @ObservationIgnored
@@ -83,7 +93,24 @@ struct Player: Identifiable {
 }
 
 enum GamePhase: CaseIterable {
-    case setup, night, day, voting, elimination, gameOver
+    case setup, roleReveal, night, day, voting, elimination, gameOver
+}
+
+enum DeviceLocation {
+    case center, withPlayer(PlayerID)
+}
+
+enum PlayerInstruction {
+    case groupSetup
+    case passToPlayer(String, action: String) // "Pass to Alice to see her role"
+    case privateAction(String) // "Choose your target"
+    case returnToCenter(String) // "Return device to center when done"
+    case groupDiscussion
+    case groupResults
+}
+
+enum PlayerAction {
+    case revealRole, nightAction, vote, acknowledge
 }
 
 enum Role: String, CaseIterable {
@@ -139,18 +166,20 @@ enum Role: String, CaseIterable {
 ## Implementation Complexity Assessment
 
 ### Technical Complexity Assessment
-**Complexity Level**: Moderate (manageable with careful state design and accessibility testing)
+**Complexity Level**: Medium-High (manageable with careful device flow design and extensive group testing)
 
 **Implementation Challenges**:
 - **Setup and Infrastructure**: Low complexity - clean slate SwiftUI project with standard architecture
-- **Core Implementation**: Medium complexity - game logic straightforward, device sharing patterns require custom design
+- **Core Implementation**: Medium-High complexity - game logic straightforward, but device passing orchestration requires careful UX design
+- **Device Flow Coordination**: High complexity - managing turn-based device handoff with clear instructions for who, what, when
+- **Privacy UX Design**: Medium complexity - balancing information visibility with game secrecy during device transitions
 - **Integration Points**: Low complexity - no external services, pure SwiftUI implementation
-- **Testing Requirements**: Medium complexity - comprehensive game logic testing, extensive usability validation
+- **Testing Requirements**: High complexity - comprehensive game logic testing plus extensive group usability validation
 
 **Risk Assessment**:
-- **High Risk Areas**: Shared device UI patterns (custom implementation needed), privacy information visibility during device handoff
-- **Mitigation Strategies**: Early usability testing with real user groups, clear visual privacy boundaries, comprehensive state testing
-- **Unknowns Requiring Research**: None identified - research phase addressed all technical uncertainties
+- **High Risk Areas**: Device passing orchestration (complex state management), user confusion during handoffs, privacy leaks during device transitions
+- **Mitigation Strategies**: Prototype device flow early, extensive group testing with real players, clear visual instruction system, fail-safe privacy guards
+- **Critical UX Requirements**: Every device handoff must have crystal clear WHO/WHAT/WHEN instructions to prevent game breakdown
 
 ### Dependency Analysis
 
@@ -179,14 +208,28 @@ enum Role: String, CaseIterable {
 ## Technical Clarifications
 
 ### Areas Requiring Resolution
-No significant technical uncertainties remain after comprehensive research phase. All core technologies and architectural patterns have been validated.
+
+**Critical UX Flow Design Requirements**:
+- **Role Revelation Flow**: Design exact sequence for each player to privately see their role without others seeing
+- **Night Phase Coordination**: Determine optimal order and instructions for players who need to take private actions
+- **Voting Sequence**: Plan how each player votes privately while maintaining game flow and privacy
+- **Device Location Awareness**: Clear visual/textual indicators for when device should be in center vs. with individual player
+- **Privacy Fail-safes**: What happens when someone accidentally sees private information meant for another player
+
+**Specific Interaction Patterns Needing Design**:
+- Transition animations/screens between "group mode" and "private mode"
+- Instructions for non-active players (where to look, what to do while waiting)
+- Error recovery if wrong player takes device or sees wrong information
+- Timing considerations (how long should private actions take?)
+- Screen orientation preferences for shared viewing vs. private viewing
 
 ### Research Requirements
 **Technology Investigations**: Complete - SwiftUI patterns, @Observable state management, and usability approaches fully researched
 
-**Proof of Concept Needs**: 
-- **Device Handoff UX Testing**: Early prototype of device passing flow with clear visual cues to validate user experience
-- **Complex Game State Testing**: Validate @Observable performance with maximum player counts and rapid state changes
+**Critical Proof of Concept Needs**: 
+- **Device Flow Prototype**: Early interactive prototype testing the complete role revelation → night actions → voting → results cycle with real groups
+- **Instruction Clarity Testing**: Validate that device passing instructions are immediately understood by players of various ages
+- **Privacy Boundary Validation**: Ensure information hiding mechanisms work reliably during device handoffs
 
 ---
 

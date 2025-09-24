@@ -129,9 +129,10 @@ Clean slate SwiftUI project with minimal foundation. Current patterns: 4-space i
 
 **Approach**:
 - Clear visual hierarchy with large, readable text and buttons
-- Intuitive device passing cues with prominent "Pass Device" buttons
+- Explicit device passing coordination with WHO/WHAT/WHEN instructions
 - Visual feedback for game state transitions and phase changes
 - Simple navigation patterns that work well for group settings
+- Clear distinction between "group mode" (device in center) and "private mode" (individual player has device)
 
 **Benefits**:
 - Improved usability for mixed age groups through clear visual design
@@ -140,15 +141,20 @@ Clean slate SwiftUI project with minimal foundation. Current patterns: 4-space i
 - Simplified interaction model suitable for casual gaming
 
 **Drawbacks**:
-- Custom device handoff patterns require careful UX design
-- Need to balance information visibility with game secrecy
-- Requires testing with actual groups to validate flow
+- Complex device orchestration requires careful state management and UX design
+- Need to balance information visibility with game secrecy during handoffs
+- Risk of user confusion or game breakdown if instructions aren't crystal clear
+- Requires extensive testing with actual groups across different age ranges to validate flow
 
 **Implementation Considerations**:
 - Support Dynamic Type scaling for players who need larger text
 - Use high contrast colors for better visibility in group settings
 - Implement clear visual boundaries between private and public information
+- Design explicit device passing coordination system with state tracking
+- Create fail-safe mechanisms for privacy protection during device transitions
+- Plan instruction sequences for every device handoff moment in the game
 - Design for both portrait and landscape orientations
+- Consider screen timeout and device sleep during gameplay
 
 **Decision Rationale**: Focus on clear, usable design that works well for fully capable users in social gaming scenarios, with text scaling support for older players.
 
@@ -203,9 +209,10 @@ Pure SwiftUI implementation with @Observable state management, organized followi
 
 ### Implementation Priorities
 1. **Foundation**: @Observable GameModel with core game logic and state management architecture
-2. **Privacy**: Role-based information filtering and clear visual boundaries for secure device sharing
-3. **Usability**: Dynamic Type support and clear visual design for mixed age group gaming
-4. **Polish**: Advanced features like custom roles, timers, and enhanced visual feedback
+2. **Device Flow Coordination**: WHO/WHAT/WHEN instruction system and device passing state management
+3. **Privacy**: Role-based information filtering and clear visual boundaries for secure device sharing
+4. **Usability**: Dynamic Type support and clear visual design for mixed age group gaming
+5. **Polish**: Advanced features like custom roles, timers, and enhanced visual feedback
 
 ---
 
