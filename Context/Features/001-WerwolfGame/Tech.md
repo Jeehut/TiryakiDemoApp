@@ -37,7 +37,10 @@ GameStateView (main game coordinator with device passing orchestration)
 │   ├── VotingView (PRIVATE: cast vote, confirm, pass device)
 │   └── DeviceReturnPrompt (instructions to return device to center/next player)
 ├── GroupViews/
+│   ├── GroupInstructionView (GROUP: read aloud phase instructions, device in center)
 │   ├── DayPhaseView (GROUP: discussion phase, device in center)
+│   ├── NightPhaseGroupView (GROUP: "Everyone close your eyes" instructions, device in center)
+│   ├── VotingInstructionsView (GROUP: explain voting rules before private votes, device in center)
 │   ├── EliminationView (GROUP: dramatic reveal, device in center)
 │   └── GameResultsView (GROUP: win/loss celebration, device in center)
 └── Components/
@@ -93,7 +96,7 @@ struct Player: Identifiable {
 }
 
 enum GamePhase: CaseIterable {
-    case setup, roleReveal, night, day, voting, elimination, gameOver
+    case setup, roleReveal, nightInstructions, night, dayInstructions, day, votingInstructions, voting, elimination, gameOver
 }
 
 enum DeviceLocation {
@@ -105,6 +108,7 @@ enum PlayerInstruction {
     case passToPlayer(String, action: String) // "Pass to Alice to see her role"
     case privateAction(String) // "Choose your target"
     case returnToCenter(String) // "Return device to center when done"
+    case groupInstructions(String) // "Read aloud: Everyone close your eyes..."
     case groupDiscussion
     case groupResults
 }
@@ -211,17 +215,21 @@ enum Role: String, CaseIterable {
 
 **Critical UX Flow Design Requirements**:
 - **Role Revelation Flow**: Design exact sequence for each player to privately see their role without others seeing
+- **Group Instruction Phases**: Device returns to center to read aloud phase instructions ("Everyone close your eyes", "Now discuss who to eliminate", etc.)
 - **Night Phase Coordination**: Determine optimal order and instructions for players who need to take private actions
 - **Voting Sequence**: Plan how each player votes privately while maintaining game flow and privacy
+- **Phase Transition Management**: Clear handoff between group instruction phases and private action phases
 - **Device Location Awareness**: Clear visual/textual indicators for when device should be in center vs. with individual player
 - **Privacy Fail-safes**: What happens when someone accidentally sees private information meant for another player
 
 **Specific Interaction Patterns Needing Design**:
 - Transition animations/screens between "group mode" and "private mode"
+- Audio/visual cues for group instruction reading (device speaks to everyone)
 - Instructions for non-active players (where to look, what to do while waiting)
 - Error recovery if wrong player takes device or sees wrong information
-- Timing considerations (how long should private actions take?)
+- Timing considerations (how long should private actions take? how long for group instructions?)
 - Screen orientation preferences for shared viewing vs. private viewing
+- Clear "Continue" buttons for group instruction phases before moving to private actions
 
 ### Research Requirements
 **Technology Investigations**: Complete - SwiftUI patterns, @Observable state management, and usability approaches fully researched
